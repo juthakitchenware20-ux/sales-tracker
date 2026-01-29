@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบันทึกยอดขาย</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&family=Kanit:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2d5a7b;
+            --primary-dark: #1e3f56;
+            --accent: #e67e22;
+            --accent-light: #f39c12;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --bg-main: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --border: #dee2e6;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 30px;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Kanit', sans-serif;
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            animation: fadeIn 0.8s ease-out 0.2s backwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .sidebar {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .section-title {
+            font-family: 'Kanit', sans-serif;
+            font-size: 1.3rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid var(--accent);
+            font-weight: 600;
+        }
+
+        .branch-list {
+            list-style: none;
+        }
+
+        .branch-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: var(--bg-main);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .branch-item:hover {
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+            border-left-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .branch-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-left-color: var(--accent);
+            box-shadow: var(--shadow-md);
+        }
+
+        .branch-name {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .delete-branch {
+            background: rgba(231, 76, 60, 0.8);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+
+        .delete-branch:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .branch-item.active .delete-branch {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .add-branch-form {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            border: 2px dashed var(--border);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Sarabun', sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(45, 90, 123, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Kanit', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #229954);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .main-content {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .transaction-form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa, #ffffff);
+            border-radius: 12px;
+            border: 2px solid var(--border);
+        }
+
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--bg-main), white);
+            border-left: 4px solid var(--primary);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card.positive {
+            border-left-color: var(--success);
+        }
+
+        .stat-card.negative {
+            border-left-color: var(--danger);
+        }
+
+        .stat-card.neutral {
+            border-left-color: var(--warning);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'Kanit', sans-serif;
+            color: var(--text-dark);
+        }
+
+        .transactions-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+        }
+
+        .transactions-table th {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-family: 'Kanit', sans-serif;
+        }
+
+        .transactions-table th:first-child {
+            border-top-left-radius: 8px;
+        }
+
+        .transactions-table th:last-child {
+            border-top-right-radius: 8px;
+        }
+
+        .transactions-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            background: white;
+        }
+
+        .transactions-table tr:hover td {
+            background: var(--bg-main);
+        }
+
+        .transactions-table tr:last-child td:first-child {
+            border-bottom-left-radius: 8px;
+        }
+
+        .transactions-table tr:last-child td:last-child {
+            border-bottom-right-radius: 8px;
+        }
+
+        .transaction-type {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .type-in {
+            background: rgba(39, 174, 96, 0.1);
+            color: var(--success);
+        }
+
+        .type-sale {
+            background: rgba(52, 152, 219, 0.1);
+            color: #3498db;
+        }
+
+        .type-transfer {
+            background: rgba(155, 89, 182, 0.1);
+            color: #9b59b6;
+        }
+
+        .type-return {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
+        }
+
+        .amount {
+            font-weight: 700;
+            font-family: 'Kanit', sans-serif;
+        }
+
+        .amount.positive {
+            color: var(--success);
+        }
+
+        .amount.negative {
+            color: var(--danger);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .delete-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .transaction-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .commission-info {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 ระบบบันทึกยอดขาย</h1>
+            <p class="subtitle">จัดการสาขาและบันทึกธุรกรรมการขายอย่างมีประสิทธิภาพ</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <h2 class="section-title">🏪 สาขาทั้งหมด</h2>
+                <ul class="branch-list" id="branchList"></ul>
+                
+                <div class="add-branch-form">
+                    <h3 style="margin-bottom: 15px; color: var(--primary); font-family: 'Kanit', sans-serif;">เพิ่มสาขาใหม่</h3>
+                    <div class="input-group">
+                        <label for="newBranchName">ชื่อสาขา</label>
+                        <input type="text" id="newBranchName" placeholder="กรอกชื่อสาขา...">
+                    </div>
+                    <div class="input-group">
+                        <label for="commissionRate">อัตราค่าคอมมิชชั่น (%)</label>
+                        <select id="commissionRate">
+                            <option value="10">10%</option>
+                            <option value="20">20%</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="addBranch()" style="width: 100%;">
+                        ➕ เพิ่มสาขา
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="main-content">
+                <div id="branchContent"></div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Data Structure
+        let branches = JSON.parse(localStorage.getItem('salesBranches')) || [];
+        let currentBranchId = null;
+
+        // Initialize
+        function init() {
+            if (branches.length === 0) {
+                // Add default branch
+                branches.push({
+                    id: Date.now(),
+                    name: 'สาขาหลัก',
+                    commissionRate: 10,
+                    transactions: []
+                });
+                saveBranches();
+            }
+            renderBranches();
+            if (branches.length > 0) {
+                selectBranch(branches[0].id);
+            }
+        }
+
+        // Save to localStorage
+        function saveBranches() {
+            localStorage.setItem('salesBranches', JSON.stringify(branches));
+        }
+
+        // Add Branch
+        function addBranch() {
+            const name = document.getElementById('newBranchName').value.trim();
+            const commissionRate = parseInt(document.getElementById('commissionRate').value);
+
+            if (!name) {
+                alert('กรุณากรอกชื่อสาขา');
+                return;
+            }
+
+            const newBranch = {
+                id: Date.now(),
+                name: name,
+                commissionRate: commissionRate,
+                transactions: []
+            };
+
+            branches.push(newBranch);
+            saveBranches();
+            renderBranches();
+            selectBranch(newBranch.id);
+
+            document.getElementById('newBranchName').value = '';
+        }
+
+        // Delete Branch
+        function deleteBranch(id, event) {
+            event.stopPropagation();
+            if (branches.length <= 1) {
+                alert('ต้องมีอย่างน้อย 1 สาขา');
+                return;
+            }
+
+            if (confirm('ต้องการลบสาขานี้หรือไม่?')) {
+                branches = branches.filter(b => b.id !== id);
+                saveBranches();
+                renderBranches();
+                if (currentBranchId === id) {
+                    selectBranch(branches[0].id);
+                }
+            }
+        }
+
+        // Render Branches
+        function renderBranches() {
+            const branchList = document.getElementById('branchList');
+            branchList.innerHTML = branches.map(branch => `
+                <li class="branch-item ${currentBranchId === branch.id ? 'active' : ''}" 
+                    onclick="selectBranch(${branch.id})">
+                    <div>
+                        <div class="branch-name">${branch.name}</div>
+                        <small style="opacity: 0.8;">ค่าคอมมิชชั่น: ${branch.commissionRate}%</small>
+                    </div>
+                    <button class="delete-branch" onclick="deleteBranch(${branch.id}, event)">🗑️</button>
+                </li>
+            `).join('');
+        }
+
+        // Select Branch
+        function selectBranch(id) {
+            currentBranchId = id;
+            renderBranches();
+            renderBranchContent();
+        }
+
+        // Add Transaction
+        function addTransaction() {
+            const type = document.getElementById('transactionType').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const description = document.getElementById('description').value.trim();
+            const date = document.getElementById('transactionDate').value;
+
+            if (!amount || amount <= 0) {
+                alert('กรุณากรอกจำนวนเงินที่ถูกต้อง');
+                return;
+            }
+
+            const branch = branches.find(b => b.id === currentBranchId);
+            const transaction = {
+                id: Date.now(),
+                type: type,
+                amount: amount,
+                description: description,
+                date: date || new Date().toISOString().split('T')[0],
+                timestamp: new Date().toLocaleString('th-TH')
+            };
+
+            branch.transactions.unshift(transaction);
+            saveBranches();
+            renderBranchContent();
+
+            // Reset form
+            document.getElementById('amount').value = '';
+            document.getElementById('description').value = '';
+        }
+
+        // Delete Transaction
+        function deleteTransaction(transactionId) {
+            if (confirm('ต้องการลบรายการนี้หรือไม่?')) {
+                const branch = branches.find(b => b.id === currentBranchId);
+                branch.transactions = branch.transactions.filter(t => t.id !== transactionId);
+                saveBranches();
+                renderBranchContent();
+            }
+        }
+
+        // Calculate Statistics
+        function calculateStats() {
+            const branch = branches.find(b => b.id === currentBranchId);
+            if (!branch) return {};
+
+            let totalIn = 0;
+            let totalSale = 0;
+            let totalTransfer = 0;
+            let totalReturn = 0;
+
+            branch.transactions.forEach(t => {
+                switch(t.type) {
+                    case 'in':
+                        totalIn += t.amount;
+                        break;
+                    case 'sale':
+                        totalSale += t.amount;
+                        break;
+                    case 'transfer':
+                        totalTransfer += t.amount;
+                        break;
+                    case 'return':
+                        totalReturn += t.amount;
+                        break;
+                }
+            });
+
+            const remaining = totalIn - totalSale;
+            const transferAfterCommission10 = totalTransfer * 0.9;
+            const transferAfterCommission20 = totalTransfer * 0.8;
+            const netBalance = remaining - totalTransfer + totalReturn;
+
+            return {
+                totalIn,
+                totalSale,
+                totalTransfer,
+                totalReturn,
+                remaining,
+                transferAfterCommission10,
+                transferAfterCommission20,
+                netBalance
+            };
+        }
+
+        // Render Branch Content
+        function renderBranchContent() {
+            const branch = branches.find(b => b.id === currentBranchId);
+            if (!branch) return;
+
+            const stats = calculateStats();
+            const content = document.getElementById('branchContent');
+
+            const typeLabels = {
+                in: 'รับเข้าสินค้า',
+                sale: 'ยอดขาย',
+                transfer: 'โอนให้สำนักงาน',
+                return: 'คืนจากสาขา'
+            };
+
+            const typeClasses = {
+                in: 'type-in',
+                sale: 'type-sale',
+                transfer: 'type-transfer',
+                return: 'type-return'
+            };
+
+            content.innerHTML = `
+                <h2 class="section-title">📍 ${branch.name} 
+                    <span class="commission-info">(ค่าคอมมิชชั่น: ${branch.commissionRate}%)</span>
+                </h2>
+
+                <!-- Transaction Form -->
+                <div class="transaction-form">
+                    <div class="input-group">
+                        <label for="transactionType">ประเภทรายการ</label>
+                        <select id="transactionType">
+                            <option value="in">รับเข้าสินค้า</option>
+                            <option value="sale">ยอดขาย</option>
+                            <option value="transfer">โอนให้สำนักงาน (ยังไม่หัก %)</option>
+                            <option value="return">คืนจากสาขา</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="amount">จำนวนเงิน (บาท)</label>
+                        <input type="number" id="amount" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="description">รายละเอียด</label>
+                        <input type="text" id="description" placeholder="ระบุรายละเอียด...">
+                    </div>
+                    <div class="input-group">
+                        <label for="transactionDate">วันที่</label>
+                        <input type="date" id="transactionDate" value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-success" onclick="addTransaction()">
+                            ✅ บันทึกรายการ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <h3 class="section-title">📈 สรุปยอด</h3>
+                <div class="stats-grid">
+                    <div class="stat-card positive">
+                        <div class="stat-label">รับเข้าสินค้าทั้งหมด</div>
+                        <div class="stat-value">฿${stats.totalIn.toLocaleString('th-TH', {minimumFractionDigits: 2})}</div>
+                    </div>
+                    <div class="stat-card negative">
+                        <div class="stat-label">ยอดขายทั้งหมด</div>
+                        <div class="stat-value">฿${stats.totalSale.toLocaleString('th-TH', {minimumFractionDigits: 2})}</div>
+                    </div>
+                    <div class="stat-card neutral">
+                        <div class="stat-label">คงเหลือ (รับเข้า - ขาย)</div>
+                        <div class="stat-value">฿${stats.remaining.toLocaleString('th-TH', {minimumFractionDigits: 2})}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">โอนให้สำนักงาน (ยังไม่หัก)</div>
+                        <div class="stat-value">฿${stats.totalTransfer.toLocaleString('th-TH', {minimumFractionDigits: 2})}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">โอนหลังหัก 10%</div>
+                        <div class="stat-value">฿${stats.transferAfterCommission10.toLocaleString('th-TH', {minimumFractionDigits: 2})}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">โอนหลังหัก 20%</div>
+                        <div class="stat-value">฿${stats.transferAfterCommission20.toLocaleString('th-TH', {minimumFractionDigits: 2})}</div>
+                    </div>
+                    <div class="stat-card positive">
+                        <div class="stat-label">คืนจากสาขา</div>
+                        <div class="stat-value">฿${stats.totalReturn.toLocaleString('th-TH', {minimumFractionDigits: 2})}</div>
+                    </div>
+                    <div class="stat-card ${stats.netBalance >= 0 ? 'positive' : 'negative'}">
+                        <div class="stat-label">ยอดสุทธิ</div>
+                        <div class="stat-value">฿${stats.netBalance.toLocaleString('th-TH', {minimumFractionDigits: 2})}</div>
+                    </div>
+                </div>
+
+                <!-- Transactions Table -->
+                <h3 class="section-title">📋 รายการทั้งหมด</h3>
+                ${branch.transactions.length > 0 ? `
+                    <table class="transactions-table">
+                        <thead>
+                            <tr>
+                                <th>วันที่</th>
+                                <th>ประเภท</th>
+                                <th>รายละเอียด</th>
+                                <th>จำนวนเงิน</th>
+                                <th>บันทึกเมื่อ</th>
+                                <th>ลบ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${branch.transactions.map(t => `
+                                <tr>
+                                    <td>${t.date}</td>
+                                    <td><span class="transaction-type ${typeClasses[t.type]}">${typeLabels[t.type]}</span></td>
+                                    <td>${t.description || '-'}</td>
+                                    <td>
+                                        <span class="amount ${t.type === 'sale' || t.type === 'transfer' ? 'negative' : 'positive'}">
+                                            ${t.type === 'sale' || t.type === 'transfer' ? '-' : '+'}฿${t.amount.toLocaleString('th-TH', {minimumFractionDigits: 2})}
+                                        </span>
+                                    </td>
+                                    <td style="font-size: 0.9rem; color: var(--text-light);">${t.timestamp}</td>
+                                    <td>
+                                        <button class="delete-btn" onclick="deleteTransaction(${t.id})">🗑️</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                ` : `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <h3>ยังไม่มีรายการ</h3>
+                        <p>เริ่มต้นด้วยการเพิ่มรายการแรกของคุณ</p>
+                    </div>
+                `}
+            `;
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
